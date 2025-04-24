@@ -1,51 +1,33 @@
-def get_full_name(first_name: str, last_name: str):
-    full_name = first_name.title() + " " + last_name.title()
-    return full_name
+from enum import Enum
+
+from fastapi import FastAPI
 
 
-print(get_full_name("john", "doe"))
+class ModelName(str, Enum):
+    alexnet = "alexnet"
+    resnet = "resnet"
+    lenet = "lenet"
 
 
-def get_name_with_age(name: str, age: int):
-    name_with_age = name + " is this old: " + str(age)
-    return name_with_age
+app = FastAPI()
 
 
-def process_items(items: list[str]):
-    for item in items:
-        print(item)
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
 
 
-def process_items_tuple_set(items_t: tuple[int, int, str], items_s: set[bytes]):
-    return items_t, items_s
+@app.get("/items/{item_id}")
+async def read_item(item_id: int, q: str | None = None):
+    return {"item_id": item_id, "q": q}
 
 
-def process_items_dict(prices: dict[str, float]):
-    for item_name, item_price in prices.items():
-        print(item_name)
-        print(item_price)
+@app.get("/models/{model_name}")
+async def get_model(model_name: ModelName):
+    if model_name is ModelName.alexnet:
+        return {"model_name": model_name, "message": "Deep Learning FTW!"}
 
+    if model_name.value == "lenet":
+        return {"model_name": model_name, "message": "LeCNN all the images"}
 
-def process_union(item: int | str):
-    print(item)
-    print(type(item))
-
-
-def say_hi(name: str | None = None):
-    if name is not None:
-        print(f"Hey {name}!")
-    else:
-        print("Hello World")
-
-
-def say_hi2(name: str | None):
-    print(f"Hey {name}!")
-
-
-class Person:
-    def __init__(self, name: str):
-        self.name = name
-
-
-def get_person_name(one_person: Person):
-    return one_person.name
+    return {"model_name": model_name, "message": "Have some residuals"}
