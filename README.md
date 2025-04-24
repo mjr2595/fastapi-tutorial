@@ -1,5 +1,7 @@
 # FastAPI Learnin n Goofin
 
+Going through this [tutorial](https://fastapi.tiangolo.com/tutorial/) on FastAPI.
+
 ### Getting set up
 
 1. Install `uv`
