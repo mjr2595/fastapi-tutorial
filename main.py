@@ -1,6 +1,7 @@
 from enum import Enum
+from typing import Annotated
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Query, status
 from pydantic import BaseModel
 
 
@@ -32,9 +33,36 @@ async def read_item(skip: int = 0, limit: int = 10):
     return fake_items_db[skip : skip + limit]
 
 
+@app.get("/items/")
+async def read_items(
+    q: Annotated[
+        str | None,
+        Query(
+            title="Query string",
+            description="Query string for the items to search in the database that have a good match",
+            min_length=3,
+            max_length=50,
+            pattern="^fixedquery$",
+        ),
+    ] = None,
+):
+    results: dict[str, list[dict[str, str]] | str] = {
+        "items": [{"item_id": "Foo"}, {"item_id": "Bar"}]
+    }
+    if q:
+        results["q"] = q
+    return results
+
+
 @app.get("/items/{item_id}")
 async def read_item_short_bool(item_id: str, q: str | None = None, short: bool = False):
     item = {"item_id": item_id}
+    if item_id not in fake_items_db:
+        raise HTTPException(
+            status_code=404,
+            detail="Item not found",
+            headers={"X-Error": "There goes my error"},
+        )
     if q:
         item.update({"q": q})
     if not short:
@@ -82,7 +110,7 @@ async def read_file(file_path: str):
     return {"file_path": file_path}
 
 
-@app.post("/items/")
+@app.post("/items/", status_code=status.HTTP_201_CREATED)
 async def create_item(item: Item):
     item_dict = item.model_dump()
     if item.tax is not None:
